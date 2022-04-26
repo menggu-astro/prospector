@@ -134,36 +134,36 @@ class SpecModel(ProspectorParams):
             L_Hz = 10**predict_L_Hz(i_log_SFR, i_A_v)/lsuntimesmass      
             lum_list = [L_Ha, L_Hb, L_Hg, L_Hd, L_He, L_Hz]
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
-                iw_index = find_nearest(_eline_wave, iwave)
+                iw_index = find_nearest(self._eline_wave, iwave)
                 self._eline_lum[iw_index] = lum_list[iw_]
             # -- OII -- #
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_A_v)         
-            iw_index = find_nearest(_eline_wave,3729)
+            iw_index = find_nearest(self._eline_wave,3729)
             # -- Question: should I divide by totmass or stellar mass?
             self._eline_lum[iw_index] = 10**logOII3729/lsuntimesmass          
-            iw_index = find_nearest(_eline_wave,3726)
+            iw_index = find_nearest(self._eline_wave,3726)
             self._eline_lum[iw_index] = 10**logOII3726/lsuntimesmass           
             # -- OIII -- #
-            logOIII5007, logOIII4959 = predict_L_OIII(i_log_SFR, i_A_v,i_log_stellarmass)         
-            iw_index = find_nearest(_eline_wave,5007)
+            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_A_v,i_log_stellarmass)         
+            iw_index = find_nearest(self._eline_wave,5007)
             self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass           
-            iw_index = find_nearest(_eline_wave,4960)
+            iw_index = find_nearest(self._eline_wave,4960)
             self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass           
             # -- NeIII -- #
             logline = predict_L_NeIII3870(i_log_SFR, i_A_v,i_log_stellarmass)
-            iw_index = find_nearest(_eline_wave,3968)
+            iw_index = find_nearest(self._eline_wave,3968)
             self._eline_lum[iw_index] = 10**logline/lsuntimesmass           
             # -- NII -- #
             logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_A_v,i_log_stellarmass)         
-            iw_index = find_nearest(_eline_wave,6585)
+            iw_index = find_nearest(self._eline_wave,6585)
             self._eline_lum[iw_index] = 10**logNII6583/lsuntimesmass           
-            iw_index = find_nearest(_eline_wave,6549)
+            iw_index = find_nearest(self._eline_wave,6549)
             self._eline_lum[iw_index] = 10**logNII6548/lsuntimesmass           
             # -- SII -- #
-            _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_A_v,i_lg_stellarmass )         
-            iw_index = find_nearest(_eline_wave,6717)
+            _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_A_v,i_log_stellarmass )         
+            iw_index = find_nearest(self._eline_wave,6717)
             self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass           
-            iw_index = find_nearest(_eline_wave,6732)
+            iw_index = find_nearest(self._eline_wave,6732)
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass           
             
             

@@ -204,7 +204,7 @@ def predict_L_NII6585(logSFR, Av_stellar, logMstar):
 
    logL_Ha = predict_L_Ha(logSFR, Av_stellar)
    logL_Hb = predict_L_Hb(logSFR, Av_stellar)
-   logL_OIII = predict_L_OIII5007(logSFR, Av_stellar, logMstar)
+   logL_OIII = predict_L_OIII5007(logSFR, Av_stellar, logMstar)[0]
    
    logL_NII  = 0.61/((logL_OIII - logL_Hb) - 1.12) + 0.22 + logL_Ha
    
@@ -221,7 +221,7 @@ def predict_L_SII_tot(logSFR, Av_stellar, logMstar):
 
    logL_Ha = predict_L_Ha(logSFR, Av_stellar)
    logL_Hb = predict_L_Hb(logSFR, Av_stellar)
-   logL_OIII = predict_L_OIII5007(logSFR, Av_stellar, logMstar)
+   logL_OIII = predict_L_OIII5007(logSFR, Av_stellar, logMstar)[0]
    
    logL_SII  = 0.72/((logL_OIII - logL_Hb) - 1.15) + 0.53 + logL_Ha
    
