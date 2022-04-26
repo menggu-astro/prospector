@@ -18,7 +18,7 @@ from .parameters import ProspectorParams
 from ..sources.constants import to_cgs_at_10pc as to_cgs
 from ..sources.constants import cosmo, lightspeed, ckms, jansky_cgs
 from ..utils.smoothing import smoothspec
-from .Valentino2017_Strom import *
+from .Valentino2017_Strom_update import *
 
 
 __all__ = ["SpecModel", "PolySpecModel", "SplineSpecModel",
@@ -134,18 +134,12 @@ class SpecModel(ProspectorParams):
             # -- Question: sfrs[0] is the most recent bin? 
             i_log_SFR = math.log10(sfrs[0])
             # -- now update line list -- #
-            lsuntimesmass = 3.846e33*(10**(i_log_totmass))  
+            lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))  
             # -- Halpha to Hzeta-- #
-            L_Ha = 10**predict_L_Ha(i_log_SFR, i_A_v)/lsuntimesmass    
-            L_Hb = 10**predict_L_Hb(i_log_SFR, i_A_v)/lsuntimesmass      
-            L_Hg = 10**predict_L_Hg(i_log_SFR, i_A_v)/lsuntimesmass      
-            L_Hd = 10**predict_L_Hd(i_log_SFR, i_A_v)/lsuntimesmass      
-            L_He = 10**predict_L_He(i_log_SFR, i_A_v)/lsuntimesmass      
-            L_Hz = 10**predict_L_Hz(i_log_SFR, i_A_v)/lsuntimesmass      
-            lum_list = [L_Ha, L_Hb, L_Hg, L_Hd, L_He, L_Hz]
+            lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_A_v)/lsuntimesmass
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
-                self._eline_lum[iw_index] = lum_list[iw_]
+                self._eline_lum[iw_index] = lum_Hemis[iw_]
             # -- OII -- #
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_A_v)         
             iw_index = find_nearest(self._eline_wave,3729)
