@@ -19,6 +19,8 @@ from ..sources.constants import to_cgs_at_10pc as to_cgs
 from ..sources.constants import cosmo, lightspeed, ckms, jansky_cgs
 from ..utils.smoothing import smoothspec
 from .Valentino2017_Strom_update import *
+from .transforms import logsfr_ratios_to_sfrs
+
 
 
 __all__ = ["SpecModel", "PolySpecModel", "SplineSpecModel",
@@ -122,17 +124,11 @@ class SpecModel(ProspectorParams):
             i_A_v = 1.086*self.params.get('dust2',0)
             # -- Question: calculation of sfr correct?
             # -- which logmass should I use?
-            _agebins = sps.params['agebins']
-            nbins = _agebins.shape[0]
-            i_logsfr_ratios = self.params.get('logsfr_ratios',0)
-            sratios = 10**np.clip(i_logsfr_ratios, -100, 100)
-            dt = (10**_agebins[:, 1] - 10**_agebins[:, 0])
-            coeffs = np.array([ (1. / np.prod(sratios[:i])) * (np.prod(dt[1: i+1]) / np.prod(dt[: i])) for i in range(nbins)])
-            m1 = (10**i_log_totmass) / coeffs.sum()
-            masses = m1*coeffs
-            sfrs = masses/dt
+            i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass, 
+                                                     self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
             # -- Question: sfrs[0] is the most recent bin? 
-            i_log_SFR = math.log10(sfrs[0])
+            i_log_SFR = math.log10(i_sfr[0])
+            print('most recent logSFR = %.1f'%i_log_SFR)
             # -- now update line list -- #
             lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))  
             # -- Halpha to Hzeta-- #
