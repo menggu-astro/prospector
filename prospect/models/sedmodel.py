@@ -62,7 +62,8 @@ class SpecModel(ProspectorParams):
 
         return new_pars
 
-    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, PFS_emis=False, **extras):
+    def predict(self, theta, obs=None, sps=None, sigma_spec=None, 
+                log_stellarmass=None, PFS_emis=False, **extras):
         """Given a ``theta`` vector, generate a spectrum, photometry, and any
         extras (e.g. stellar mass), including any calibration effects.
 
@@ -104,9 +105,8 @@ class SpecModel(ProspectorParams):
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
 
 	    # If PFS_emis is True, update the emission line luminosities
-        if PFS_emis:
-            i_log_totmass = self.params.get('logmass',0)
-
+        if PFS_emis is True:
+     
             # Calculate the logarithm of the stellar mass if it's not provided
             if log_stellarmass is None:
                 i_log_stellarmass = math.log10(self._mfrac*(10**i_log_totmass))
