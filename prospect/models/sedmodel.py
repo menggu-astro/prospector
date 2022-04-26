@@ -6,7 +6,7 @@ observed spectra and photometry from them, given a Source object.
 """
 
 import numpy as np
-import os
+import os, math
 
 from numpy.polynomial.chebyshev import chebval, chebvander
 from scipy.interpolate import splrep, BSpline
