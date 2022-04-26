@@ -1,0 +1,2 @@
+- new branch is created for pfs mock spectra.
+- emission line component will be updated.
