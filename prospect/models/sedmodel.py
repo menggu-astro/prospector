@@ -72,7 +72,7 @@ class SpecModel(ProspectorParams):
 
         return new_pars
 
-    def predict(self, theta, obs=None, sps=None, sigma_spec=None, **extras):
+    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, **extras):
         """Given a ``theta`` vector, generate a spectrum, photometry, and any
         extras (e.g. stellar mass), including any calibration effects.
 
@@ -119,7 +119,10 @@ class SpecModel(ProspectorParams):
         PFS_emis = True
         if PFS_emis:
             i_log_totmass = self.params.get('logmass',0)
-            i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
+            if log_stellarmass is None: 
+                i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
+            else:
+                i_log_stellarmass = log_stellarmass
             # -- Question: what's the diff btw i_log_stellarmass and log_stellar mass in cat?
             i_A_v = 1.086*self.params.get('dust2',0)
             # -- Question: calculation of sfr correct?
