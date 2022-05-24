@@ -106,32 +106,32 @@ class SpecModel(ProspectorParams):
             Any extra aspects of the model that are returned.  Typically this
             will be `mfrac` the ratio of the surviving stellar mass to the
             stellar mass formed.
+        -- updated to include stellar mass as an input
         """
         # generate and cache model spectrum and info
         self.set_parameters(theta)
         self._wave, self._spec, self._mfrac = sps.get_galaxy_spectrum(**self.params)
         self._zred = self.params.get('zred', 0)
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
-        print('updating emission lines for PFS mock spectra')
-        print(self._eline_lum)
+        #print('updating emission lines for PFS mock spectra')
 
 	# ---- adding lines to update luminosity, 04/25/2022, for PFS
         PFS_emis = True
         if PFS_emis:
-            i_log_totmass = self.params.get('logmass',0)
             if log_stellarmass is None: 
+                i_log_totmass = self.params.get('logmass',0)
                 i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
             else:
                 i_log_stellarmass = log_stellarmass
+            print('stellar mass=%.2f'%i_log_stellarmass)
             # -- Question: what's the diff btw i_log_stellarmass and log_stellar mass in cat?
             i_A_v = 1.086*self.params.get('dust2',0)
             # -- Question: calculation of sfr correct?
             # -- which logmass should I use?
             i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass, 
                                                      self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
-            # -- Question: sfrs[0] is the most recent bin? 
+            # -- Question: sfrs[0] is the most recent bin? - yes, 0-30Myr 
             i_log_SFR = math.log10(i_sfr[0])
-            print('most recent logSFR = %.1f'%i_log_SFR)
             # -- now update line list -- #
             lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))  
             # -- Halpha to Hzeta-- #
@@ -169,12 +169,7 @@ class SpecModel(ProspectorParams):
             iw_index = find_nearest(self._eline_wave,6732)
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass           
             
-            
-            print(self._eline_lum)
         # -------- #         
-
-
-
         # Flux normalize
         self._norm_spec = self._spec * self.flux_norm()
 
@@ -235,6 +230,11 @@ class SpecModel(ProspectorParams):
         if self._outwave is None:
             self._outwave = obs_wave
 
+
+        ## -- add by MGu on 2022/05/18
+        #obs["wavelength"] = self._outwave
+        #obs["spectrum"] = np.ones_like(obs["wavelength"])
+        #obs["unc"] = np.ones_like(obs["wavelength"])
         # --- cache eline parameters ---
         self.cache_eline_parameters(obs)
 
@@ -252,6 +252,10 @@ class SpecModel(ProspectorParams):
 
         # --- calibration ---
         self._speccal = self.spec_calibration(obs=obs, spec=smooth_spec, **extras)
+
+        # -- 2022/05/18 by MGu -- replace spec_calibration to ones
+        #self._speccal = np.ones_like(smooth_spec)
+
         calibrated_spec = smooth_spec * self._speccal
 
         # --- fit and add lines if necessary ---
