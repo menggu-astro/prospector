@@ -104,21 +104,17 @@ class SpecModel(ProspectorParams):
         self._zred = self.params.get('zred', 0)
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
         #print('updating emission lines for PFS mock spectra')
-<<<<<<< HEAD
         #print('self._eline_lum', self._eline_lum)
-=======
->>>>>>> 12f986c3eb44b159629a191b11d93220ad408011
 
 	# ---- adding lines to update luminosity, 04/25/2022, for PFS
         PFS_emis = False
         if PFS_emis:
-<<<<<<< HEAD
             i_log_totmass = self.params.get('logmass',0)
             if log_stellarmass is None:
-=======
-            if log_stellarmass is None: 
+            if log_stellarmass is None:
                 i_log_totmass = self.params.get('logmass',0)
->>>>>>> 12f986c3eb44b159629a191b11d93220ad408011
+            if log_stellarmass is None:
+                i_log_totmass = self.params.get('logmass',0)
                 i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
             else:
                 i_log_stellarmass = log_stellarmass
@@ -129,14 +125,13 @@ class SpecModel(ProspectorParams):
             # -- which logmass should I use?
             i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass,
                                                      self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
-<<<<<<< HEAD
             # -- Question: sfrs[0] is the most recent bin?
             i_log_SFR = math.log10(i_sfr[0])
             #print('most recent logSFR = %.1f'%i_log_SFR)
-=======
-            # -- Question: sfrs[0] is the most recent bin? - yes, 0-30Myr 
+            # -- Question: sfrs[0] is the most recent bin? - yes, 0-30Myr
             i_log_SFR = math.log10(i_sfr[0])
->>>>>>> 12f986c3eb44b159629a191b11d93220ad408011
+            # -- Question: sfrs[0] is the most recent bin? - yes, 0-30Myr
+            i_log_SFR = math.log10(i_sfr[0])
             # -- now update line list -- #
             lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
             # -- Halpha to Hzeta-- #
@@ -172,16 +167,13 @@ class SpecModel(ProspectorParams):
             iw_index = find_nearest(self._eline_wave,6717)
             self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass
             iw_index = find_nearest(self._eline_wave,6732)
-<<<<<<< HEAD
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
 
         print('self._eline_lum:',self._eline_lum)
         # -------- #
-=======
-            self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass           
-            
-        # -------- #         
->>>>>>> 12f986c3eb44b159629a191b11d93220ad408011
+            self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
+
+        # -------- #
         # Flux normalize
         self._norm_spec = self._spec * self.flux_norm()
 
