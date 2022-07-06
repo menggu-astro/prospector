@@ -106,6 +106,7 @@ class SpecModel(ProspectorParams):
             Any extra aspects of the model that are returned.  Typically this
             will be `mfrac` the ratio of the surviving stellar mass to the
             stellar mass formed.
+        -- updated to include stellar mass as an input
         """
         # generate and cache model spectrum and info
         self.set_parameters(theta)
@@ -113,64 +114,62 @@ class SpecModel(ProspectorParams):
         self._zred = self.params.get('zred', 0)
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
         #print('updating emission lines for PFS mock spectra')
-        #print('self._eline_lum', self._eline_lum)
 
 	# ---- adding lines to update luminosity, 04/25/2022, for PFS
-        PFS_emis = False
+        PFS_emis = True
         if PFS_emis:
-            i_log_totmass = self.params.get('logmass',0)
-            if log_stellarmass is None:
+            if log_stellarmass is None: 
+                i_log_totmass = self.params.get('logmass',0)
                 i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
             else:
                 i_log_stellarmass = log_stellarmass
+            print('stellar mass=%.2f'%i_log_stellarmass)
             # -- Question: what's the diff btw i_log_stellarmass and log_stellar mass in cat?
             i_A_v = 1.086*self.params.get('dust2',0)
             # -- Question: calculation of sfr correct?
             # -- which logmass should I use?
-            i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass,
+            i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass, 
                                                      self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
-            # -- Question: sfrs[0] is the most recent bin?
+            # -- Question: sfrs[0] is the most recent bin? - yes, 0-30Myr 
             i_log_SFR = math.log10(i_sfr[0])
-            #print('most recent logSFR = %.1f'%i_log_SFR)
             # -- now update line list -- #
-            lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
+            lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))  
             # -- Halpha to Hzeta-- #
             lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_A_v)/lsuntimesmass
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
                 self._eline_lum[iw_index] = lum_Hemis[iw_]
             # -- OII -- #
-            _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_A_v)
+            _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_A_v)         
             iw_index = find_nearest(self._eline_wave,3729)
             # -- Question: should I divide by totmass or stellar mass?
-            self._eline_lum[iw_index] = 10**logOII3729/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logOII3729/lsuntimesmass          
             iw_index = find_nearest(self._eline_wave,3726)
-            self._eline_lum[iw_index] = 10**logOII3726/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logOII3726/lsuntimesmass           
             # -- OIII -- #
-            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_A_v,i_log_stellarmass)
+            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_A_v,i_log_stellarmass)         
             iw_index = find_nearest(self._eline_wave,5007)
-            self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass           
             iw_index = find_nearest(self._eline_wave,4960)
-            self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass           
             # -- NeIII -- #
             logline = predict_L_NeIII3870(i_log_SFR, i_A_v,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,3968)
-            self._eline_lum[iw_index] = 10**logline/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logline/lsuntimesmass           
             # -- NII -- #
-            logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_A_v,i_log_stellarmass)
+            logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_A_v,i_log_stellarmass)         
             iw_index = find_nearest(self._eline_wave,6585)
-            self._eline_lum[iw_index] = 10**logNII6583/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logNII6583/lsuntimesmass           
             iw_index = find_nearest(self._eline_wave,6549)
-            self._eline_lum[iw_index] = 10**logNII6548/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logNII6548/lsuntimesmass           
             # -- SII -- #
-            _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_A_v,i_log_stellarmass )
+            _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_A_v,i_log_stellarmass )         
             iw_index = find_nearest(self._eline_wave,6717)
-            self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass
+            self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass           
             iw_index = find_nearest(self._eline_wave,6732)
-            self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
-
-        print('self._eline_lum:',self._eline_lum)
-        # -------- #
+            self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass           
+            
+        # -------- #         
         # Flux normalize
         self._norm_spec = self._spec * self.flux_norm()
 
@@ -231,6 +230,11 @@ class SpecModel(ProspectorParams):
         if self._outwave is None:
             self._outwave = obs_wave
 
+
+        ## -- add by MGu on 2022/05/18
+        #obs["wavelength"] = self._outwave
+        #obs["spectrum"] = np.ones_like(obs["wavelength"])
+        #obs["unc"] = np.ones_like(obs["wavelength"])
         # --- cache eline parameters ---
         self.cache_eline_parameters(obs)
 
@@ -248,6 +252,10 @@ class SpecModel(ProspectorParams):
 
         # --- calibration ---
         self._speccal = self.spec_calibration(obs=obs, spec=smooth_spec, **extras)
+
+        # -- 2022/05/18 by MGu -- replace spec_calibration to ones
+        #self._speccal = np.ones_like(smooth_spec)
+
         calibrated_spec = smooth_spec * self._speccal
 
         # --- fit and add lines if necessary ---
@@ -432,7 +440,6 @@ class SpecModel(ProspectorParams):
         # fixed and fit lines specified by user, but remove any lines which do
         # not have an observed pixel within 5sigma of their center
         # This part has to go in every call
-        #print('in cache_eline_parameters, _eline_sigma_kms=', self._eline_sigma_kms)
         linewidth = nsigma * self._ewave_obs / ckms * self._eline_sigma_kms
         pixel_mask = (np.abs(self._outwave - self._ewave_obs[:, None]) < linewidth[:, None])
         self._valid_eline = pixel_mask.any(axis=1) & self._use_eline
@@ -576,7 +583,6 @@ class SpecModel(ProspectorParams):
             An (n_line, n_wave) ndarray, units of Lsun/Hz intrinsic (no
             calibration vector applied)
         """
-        print('going to use get_eline_gaussians')
         gaussians = self.get_eline_gaussians(lineidx=line_indices, wave=wave)
         elums = self._eline_lum[line_indices] * self.flux_norm() / (1 + self._zred)
         return elums * gaussians
@@ -607,7 +613,6 @@ class SpecModel(ProspectorParams):
         # generate gaussians
         mu = np.atleast_2d(self._ewave_obs[lineidx])
         sigma = np.atleast_2d(self._eline_sigma_kms[lineidx])
-        #print('emis sigma=',sigma)
         dv = ckms * (warr[:, None]/mu - 1)
         dv_dnu = ckms * warr[:, None]**2 / (lightspeed * mu)
 
@@ -625,7 +630,6 @@ class SpecModel(ProspectorParams):
         for details.
         """
         sigma = self.params.get("sigma_smooth", 100)
-        print('smooth spec, sigma=',sigma)
         outspec = smoothspec(wave, spec, sigma, outwave=self._outwave, **self.params)
 
         return outspec
