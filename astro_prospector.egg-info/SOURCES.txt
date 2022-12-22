@@ -23,8 +23,7 @@ prospect/likelihood/__init__.py
 prospect/likelihood/kernels.py
 prospect/likelihood/likelihood.py
 prospect/likelihood/noise_model.py
-prospect/models/Valentino2017_Strom.py
-prospect/models/Valentino2017_Strom_update.py
+prospect/models/Johnson_elines_extinction.py
 prospect/models/__init__.py
 prospect/models/model_setup.py
 prospect/models/parameters.py
