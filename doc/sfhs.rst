@@ -23,7 +23,7 @@ Parametric SFH
 So called "parametric" SFHs describe the SFR as a function of time via a
 relatively simple function with just a few parameters.  In prospector the
 parametric SFH treatment is actually handled by FSPS itself, and so the model
-parameters requirted are the same as those in FSPS (see `documentation
+parameters required are the same as those in FSPS (see `documentation
 <https://github.com/cconroy20/fsps/blob/master/doc/MANUAL.pdf>`_).
 
 The available parametric SFHs include exponential decay ("tau" models,
@@ -44,7 +44,7 @@ be fit; relevant scalar parameters will be shared by all components.
 Use of parametric SFHs requires an instance of
 :py:class:`prospect.sources.CSPSpecBasis` to be used as the ``sps`` object. A set
 of propsector parameters implementing this treatment (defaulting to a delay-tau
-form, ``sfh=4``) is available as the ``"continuity_sfh"`` entry of
+form, ``sfh=4``) is available as the ``"parametric_sfh"`` entry of
 :py:class:`prospect.models.templates.TemplateLibrary`.
 
 Binned SFHs
@@ -60,11 +60,11 @@ Use of these piece-wise constant SFHs requires an instance of
 :py:class:`prospect.sources.FastStepBasis` to be used as the ``sps`` object.
 Fundamentally this class requires two vector parameters to generate a model:
 
-    * ``agebins`` an array of shape ``(Nbin, 2)`` describing the lower and upper
-      *lookback time* of each bin (in units of log(years))
-    * ``mass`` an array of shape ``(Nbin,)`` describing the total stellar mass
-      **formed** in each bin.  For the ith bin this means
-      :math:`{\rm SFR}_i = {\rm mass}_i / (10^{{\rm agebins}_{i, 1}} - 10^{{\rm agebins}_{i, 0}})`
+* ``agebins`` an array of shape ``(Nbin, 2)`` describing the lower and upper
+  *lookback time* of each bin (in units of log(years))
+* ``mass`` an array of shape ``(Nbin,)`` describing the total stellar mass
+  **formed** in each bin.  For the ith bin this means
+  :math:`{\rm SFR}_i = {\rm mass}_i / (10^{{\rm agebins}_{i, 1}} - 10^{{\rm agebins}_{i, 0}})`
 
 The SFH treatments described below all differ in how they transform from the
 sampled SFH parameters to these fundamental binned SFH parameters, and in the
@@ -102,7 +102,7 @@ To change the number of bins see
 :py:meth:`prospect.models.templates.adjust_continuity_agebins`.  This method
 produces 3 bins with defined edges at recent and very distant lookback times,
 and then divides the remaining time in to bins of equal intervals of
- :math:`\log(t_{\rm lookback})`
+:math:`\log(t_{\rm lookback})`
 
 Continuity Flex SFH
 ^^^^^^^^^^^^^^^^^^^

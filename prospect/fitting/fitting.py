@@ -26,7 +26,7 @@ __all__ = ["lnprobfn", "fit_model",
 
 
 def lnprobfn(theta, model=None, obs=None, sps=None, noise=(None, None),
-             residuals=False, nested=False, verbose=False):
+             residuals=False, nested=False, negative=False, verbose=False):
     """Given a parameter vector and optionally a dictionary of observational
     ata and a model object, return the matural log of the posterior. This
     requires that an sps object (and if using spectra and gaussian processes, a
@@ -74,6 +74,10 @@ def lnprobfn(theta, model=None, obs=None, sps=None, noise=(None, None),
         when computing the ln-posterior.  For nested sampling algorithms the
         prior probability is incorporated in the way samples are drawn, so
         should not be included here.
+
+    :param negative: (optiona, default: False)
+        If ``True`` return the negative on the ln-probability for minimization
+        purposes.
 
     :returns lnp:
         Ln-probability, unless ``residuals=True`` in which case a vector of
@@ -148,7 +152,11 @@ def lnprobfn(theta, model=None, obs=None, sps=None, noise=(None, None),
     if verbose:
         write_log(theta, lnp_prior, lnp_spec, lnp_phot, d1, d2)
 
-    return lnp_prior + lnp_phot + lnp_spec + lnp_eline
+    lnp = lnp_prior + lnp_phot + lnp_spec + lnp_eline
+    if negative:
+        lnp *= -1
+
+    return lnp
 
 
 def wrap_lnp(lnpfn, obs, model, sps, **lnp_kwargs):
@@ -322,7 +330,7 @@ def run_minimize(obs=None, model=None, sps=None, noise=None, lnprobfn=lnprobfn,
 
     args = []
     loss = argfix(lnprobfn, obs=obs, model=model, sps=sps,
-                  noise=noise, residuals=residuals)
+                  noise=noise, residuals=residuals, negative=True)
     minimizer = minimize_wrapper(algorithm, loss, [], min_method, min_opts)
     qinit = minimizer_ball(initial, nmin, model)
 
@@ -459,7 +467,7 @@ def run_emcee(obs, model, sps, noise, lnprobfn=lnprobfn,
 
 
 def run_dynesty(obs, model, sps, noise, lnprobfn=lnprobfn,
-                pool=None, nested_posterior_thresh=0.05, **kwargs):
+                pool=None, nested_target_n_effective=10000, **kwargs):
     """Thin wrapper on :py:class:`prospect.fitting.nested.run_dynesty_sampler`
 
     :param obs:
@@ -511,7 +519,7 @@ def run_dynesty(obs, model, sps, noise, lnprobfn=lnprobfn,
         Duration of sampling in seconds of wall time.
     """
     from dynesty.dynamicsampler import stopping_function, weight_function
-    nested_stop_kwargs = {"post_thresh": nested_posterior_thresh}
+    nested_stop_kwargs = {"target_n_effective": nested_target_n_effective}
 
     lnp = wrap_lnp(lnprobfn, obs, model, sps, noise=noise,
                    nested=True)
