@@ -98,6 +98,13 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
             (worst, ustar, vstar, loglstar, logvol,
             logwt, logz, logzvar, h, nc, worst_it,
             propidx, propiter, eff, delta_logz) = results
+        # ---- update the following lines in order to use dynesty-2 ---- #
+        #(worst, ustar, vstar, loglstar, logvol,
+        # logwt, logz, logzvar, h, nc, worst_it,
+        # propidx, propiter, eff, delta_logz) = results
+        (worst, ustar, vstar, loglstar, logvol,
+         logwt, logz, logzvar, h, nc, worst_it,
+         propidx, propiter, eff, delta_logz, blob) = results
 
         if delta_logz > 1e6:
             delta_logz = np.inf
@@ -172,6 +179,11 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
                     # dynesty < 2.0
                     (worst, ustar, vstar, loglstar, nc,
                     worst_it, propidx, propiter, eff) = results
+                # ---- update the following lines in order to use dynesty-2 ---- #
+                #(worst, ustar, vstar, loglstar, nc,
+                # worst_it, propidx, propiter, eff) = results
+                (worst, ustar, vstar, loglstar, nc,
+                 worst_it, propidx, propiter, eff, blob) = results
                 ncall += nc
                 niter += 1
                 if print_progress:
