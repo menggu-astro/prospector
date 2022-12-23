@@ -65,9 +65,14 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim, verbose=True,
                                            maxcall=nested_maxcall_init,
                                            maxiter=nested_maxiter_init,
                                            live_points=nested_live_points):
+        # ---- update the following lines in order to use dynesty-2 ---- #
+        #(worst, ustar, vstar, loglstar, logvol,
+        # logwt, logz, logzvar, h, nc, worst_it,
+        # propidx, propiter, eff, delta_logz) = results
         (worst, ustar, vstar, loglstar, logvol,
          logwt, logz, logzvar, h, nc, worst_it,
-         propidx, propiter, eff, delta_logz) = results
+         propidx, propiter, eff, delta_logz, blob) = results
+
         if delta_logz > 1e6:
             delta_logz = np.inf
         ncall += nc
@@ -131,8 +136,11 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim, verbose=True,
                                                  maxiter=miter,
                                                  maxcall=mcall,
                                                  save_bounds=nested_save_bounds):
+                # ---- update the following lines in order to use dynesty-2 ---- #
+                #(worst, ustar, vstar, loglstar, nc,
+                # worst_it, propidx, propiter, eff) = results
                 (worst, ustar, vstar, loglstar, nc,
-                 worst_it, propidx, propiter, eff) = results
+                 worst_it, propidx, propiter, eff, blob) = results
                 ncall += nc
                 niter += 1
                 sys.stderr.write("\riter: {:d} | batch: {:d} | "
@@ -151,7 +159,7 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim, verbose=True,
         else:
             # We're done!
             break
-    
+
     ndur = time.time() - tstart
     if verbose:
         print('done dynesty (dynamic) in {0}s'.format(ndur))
