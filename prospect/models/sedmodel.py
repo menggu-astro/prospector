@@ -62,7 +62,7 @@ class SpecModel(ProspectorParams):
 
         return new_pars
 
-    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, **extras):
+    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, PFS_emis=True, **extras):
         """Given a ``theta`` vector, generate a spectrum, photometry, and any
         extras (e.g. stellar mass), including any calibration effects.
 
@@ -105,12 +105,12 @@ class SpecModel(ProspectorParams):
         #print('updating emission lines for PFS mock spectra')
         #print('self._eline_lum', self._eline_lum)
 
-	# ---- adding lines to update luminosity, 04/25/2022, for PFS
-        PFS_emis = True
+	    # ---- adding lines to update luminosity, 04/25/2022, for PFS
+        #PFS_emis = True
         if PFS_emis:
             i_log_totmass = self.params.get('logmass',0)
             if log_stellarmass is None:
-                i_log_stellarmass = math.log10(self._mfrac*10**i_log_totmass)
+                i_log_stellarmass = math.log10(self._mfrac*(10**i_log_totmass))
             else:
                 i_log_stellarmass = log_stellarmass
             # -- Question: what's the diff btw i_log_stellarmass and log_stellar mass in cat?
@@ -126,41 +126,54 @@ class SpecModel(ProspectorParams):
             i_log_SFR = math.log10(i_sfr[0])
             #print('most recent logSFR = %.1f'%i_log_SFR)
             # -- now update line list -- #
-            lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
+            # ---- update on Feb 24, 2023 --- # I should divide by total mass formed ---- #
+            # ---- following what `get_galaxy_elines(self)` did
+            #lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
+            lsuntimesmass = 3.846e33*(10**(i_log_totmass))
             # -- Halpha to Hzeta-- #
             lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_dust2_index, i_dust1, i_dust2)/lsuntimesmass
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
+                #print(iwave, self.emline_info[iw_index])
                 self._eline_lum[iw_index] = lum_Hemis[iw_]
             # -- OII -- #
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2)
             iw_index = find_nearest(self._eline_wave,3729)
             # -- Question: should I divide by totmass or stellar mass?
             self._eline_lum[iw_index] = 10**logOII3729/lsuntimesmass
+            #print(3729, self.emline_info[iw_index])
             iw_index = find_nearest(self._eline_wave,3726)
             self._eline_lum[iw_index] = 10**logOII3726/lsuntimesmass
+            #print(3726, self.emline_info[iw_index])
             # -- OIII -- #
             logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,5007)
             self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass
+            #print(5007, self.emline_info[iw_index])
             iw_index = find_nearest(self._eline_wave,4960)
             self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass
+            #print(4960, self.emline_info[iw_index])
             # -- NeIII -- #
             logline = predict_L_NeIII3870(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,3968)
             self._eline_lum[iw_index] = 10**logline/lsuntimesmass
+            #print(3968, self.emline_info[iw_index])
             # -- NII -- #
             logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,6585)
             self._eline_lum[iw_index] = 10**logNII6583/lsuntimesmass
+            #print(6585, self.emline_info[iw_index])
             iw_index = find_nearest(self._eline_wave,6549)
             self._eline_lum[iw_index] = 10**logNII6548/lsuntimesmass
+            #print(6549, self.emline_info[iw_index])
             # -- SII -- #
             _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass )
             iw_index = find_nearest(self._eline_wave,6717)
             self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass
+            #print(6717, self.emline_info[iw_index])
             iw_index = find_nearest(self._eline_wave,6732)
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
+            #print(6732, self.emline_info[iw_index])
 
         #print('self._eline_lum:',self._eline_lum)
         # -------- #
