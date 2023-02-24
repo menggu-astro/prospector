@@ -15,7 +15,7 @@ import warnings
 
 from .minimizer import minimize_wrapper, minimizer_ball
 from .ensemble import run_emcee_sampler
-from .nested import run_dynesty_sampler
+from .nested import run_dynesty_sampler, run_nestle_sampler
 from ..likelihood import lnlike_spec, lnlike_phot, chi_spec, chi_phot, write_log
 from ..utils.obsutils import fix_obs
 
@@ -105,8 +105,7 @@ def lnprobfn(theta, model=None, obs=None, sps=None, noise=(None, None),
     if phot_noise is not None:
         phot_noise.update(**model.params)
         vectors.update({'phot_unc': obs.get('maggies_unc', None),
-                        'phot': obs.get('maggies', None),
-                        'filter_names': obs.get('filter_names', None)})
+                        'phot': obs.get('maggies', None)})
 
     # --- Generate mean model ---
     try:
