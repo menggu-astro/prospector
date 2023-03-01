@@ -102,39 +102,31 @@ class SpecModel(ProspectorParams):
         self._wave, self._spec, self._mfrac = sps.get_galaxy_spectrum(**self.params)
         self._zred = self.params.get('zred', 0)
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
-        #print('updating emission lines for PFS mock spectra')
-        #print('self._eline_lum', self._eline_lum)
 
 	    # ---- adding lines to update luminosity, 04/25/2022, for PFS
-        #PFS_emis = True
         if PFS_emis:
             i_log_totmass = self.params.get('logmass',0)
             if log_stellarmass is None:
                 i_log_stellarmass = math.log10(self._mfrac*(10**i_log_totmass))
             else:
                 i_log_stellarmass = log_stellarmass
-            # -- Question: what's the diff btw i_log_stellarmass and log_stellar mass in cat?
-            #i_A_v = 1.086*self.params.get('dust2',0)
-            i_dust1 = 1.086*self.params.get('dust1',0)
-            i_dust2 = 1.086*self.params.get('dust2',0)
-            i_dust2_index = 1.086*self.params.get('dust2_index',0)
-            # -- Question: calculation of sfr correct?
-            # -- which logmass should I use?
-            i_sfr =logsfr_ratios_to_sfrs(i_log_stellarmass,
+            i_dust1 = self.params.get('dust1',0)
+            i_dust2 = self.params.get('dust2',0)
+            i_dust2_index = self.params.get('dust2_index',0)
+            # -- which logmass should I use? -- using total mass as of Feb 2023 
+            i_sfr =logsfr_ratios_to_sfrs(i_log_totmass,
             self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
             # -- Question: sfrs[0] is the most recent bin?
             i_log_SFR = math.log10(i_sfr[0])
             #print('most recent logSFR = %.1f'%i_log_SFR)
-            # -- now update line list -- #
             # ---- update on Feb 24, 2023 --- # I should divide by total mass formed ---- #
-            # ---- following what `get_galaxy_elines(self)` did
+            # ---- following `get_galaxy_elines(self)`
             #lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
             lsuntimesmass = 3.846e33*(10**(i_log_totmass))
             # -- Halpha to Hzeta-- #
             lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_dust2_index, i_dust1, i_dust2)/lsuntimesmass
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
-                #print(iwave, self.emline_info[iw_index])
                 self._eline_lum[iw_index] = lum_Hemis[iw_]
             # -- OII -- #
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2)

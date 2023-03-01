@@ -87,15 +87,6 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
                                            maxcall=nested_maxcall_init,
                                            maxiter=nested_maxiter_init,
                                            live_points=nested_live_points):
-<<<<<<< HEAD
-        # ---- update the following lines in order to use dynesty-2 ---- #
-        #(worst, ustar, vstar, loglstar, logvol,
-        # logwt, logz, logzvar, h, nc, worst_it,
-        # propidx, propiter, eff, delta_logz) = results
-        (worst, ustar, vstar, loglstar, logvol,
-         logwt, logz, logzvar, h, nc, worst_it,
-         propidx, propiter, eff, delta_logz, blob) = results
-=======
 
         try:
             # dynesty >= 2.0
@@ -107,7 +98,6 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
             (worst, ustar, vstar, loglstar, logvol,
             logwt, logz, logzvar, h, nc, worst_it,
             propidx, propiter, eff, delta_logz) = results
->>>>>>> upstream/main
 
         if delta_logz > 1e6:
             delta_logz = np.inf
@@ -173,13 +163,6 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
                                                  maxiter=miter,
                                                  maxcall=mcall,
                                                  save_bounds=nested_save_bounds):
-<<<<<<< HEAD
-                # ---- update the following lines in order to use dynesty-2 ---- #
-                #(worst, ustar, vstar, loglstar, nc,
-                # worst_it, propidx, propiter, eff) = results
-                (worst, ustar, vstar, loglstar, nc,
-                 worst_it, propidx, propiter, eff, blob) = results
-=======
 
                 try:
                     # dynesty >= 2.0
@@ -189,7 +172,6 @@ def run_dynesty_sampler(lnprobfn, prior_transform, ndim,
                     # dynesty < 2.0
                     (worst, ustar, vstar, loglstar, nc,
                     worst_it, propidx, propiter, eff) = results
->>>>>>> upstream/main
                 ncall += nc
                 niter += 1
                 if print_progress:

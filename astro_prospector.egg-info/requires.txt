@@ -1,2 +1,6 @@
 numpy
 h5py
+
+[test]
+pytest
+pytest-xdist
