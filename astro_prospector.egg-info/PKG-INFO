@@ -1,19 +1,21 @@
 Metadata-Version: 2.1
 Name: astro-prospector
-Version: 1.1.0
-Summary: Stellar Population Inference
-Author: Ben Johnson
-Author-email: benjamin.johnson@cfa.harvard.edu
-License: MIT
-Project-URL: Source repo, https://github.com/bd-j/prospector
-Project-URL: Documentation, https://prospect.readthedocs.io
+Version: 1.2.1.dev32+g58500cb.d20230228
+Summary: Stellar Population Inference from Spectra and SEDs
+Author-email: Ben Johnson <benjamin.johnson@cfa.harvard.edu>
+License: MIT License
+Project-URL: Homepage, https://prospect.readthedocs.io/en/latest/
+Project-URL: Source, https://github.com/bd-j/prospector
+Project-URL: Bug Tracker, https://github.com/bd-j/prospector/issues
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Science/Research
 Classifier: Programming Language :: Python
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Natural Language :: English
 Classifier: Topic :: Scientific/Engineering :: Astronomy
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
+Provides-Extra: test
 License-File: LICENSE
 License-File: AUTHORS.rst
 
