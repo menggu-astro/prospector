@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: astro-prospector
-Version: 1.2.1.dev33+gc6715da.d20230301
+Version: 1.2.1.dev34+g429c7cf.d20230410
 Summary: Stellar Population Inference from Spectra and SEDs
 Author-email: Ben Johnson <benjamin.johnson@cfa.harvard.edu>
 License: MIT License
