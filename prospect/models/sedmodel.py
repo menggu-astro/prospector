@@ -62,7 +62,7 @@ class SpecModel(ProspectorParams):
 
         return new_pars
 
-    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, PFS_emis=True, **extras):
+    def predict(self, theta, obs=None, sps=None, sigma_spec=None, log_stellarmass=None, PFS_emis=False, **extras):
         """Given a ``theta`` vector, generate a spectrum, photometry, and any
         extras (e.g. stellar mass), including any calibration effects.
 
@@ -113,7 +113,7 @@ class SpecModel(ProspectorParams):
             i_dust1 = self.params.get('dust1',0)
             i_dust2 = self.params.get('dust2',0)
             i_dust2_index = self.params.get('dust2_index',0)
-            # -- which logmass should I use? -- using total mass as of Feb 2023 
+            # -- which logmass should I use? -- using total mass as of Feb 2023
             i_sfr =logsfr_ratios_to_sfrs(i_log_totmass,
             self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
             # -- Question: sfrs[0] is the most recent bin?
