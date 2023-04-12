@@ -103,72 +103,82 @@ class SpecModel(ProspectorParams):
         self._zred = self.params.get('zred', 0)
         self._eline_wave, self._eline_lum = sps.get_galaxy_elines()
 
-	    # ---- adding lines to update luminosity, 04/25/2022, for PFS
+	    # If PFS_emis is True, update the emission line luminosities
         if PFS_emis:
             i_log_totmass = self.params.get('logmass',0)
+
+            # Calculate the logarithm of the stellar mass if it's not provided
             if log_stellarmass is None:
                 i_log_stellarmass = math.log10(self._mfrac*(10**i_log_totmass))
             else:
                 i_log_stellarmass = log_stellarmass
-            i_dust1 = self.params.get('dust1',0)
-            i_dust2 = self.params.get('dust2',0)
-            i_dust2_index = self.params.get('dust2_index',0)
+
+            # Get dust parameters
+            i_dust1 = self.params.get('dust1', 0)
+            i_dust2 = self.params.get('dust2', 0)
+            i_dust2_index = self.params.get('dust2_index', 0)
+
             # -- which logmass should I use? -- using total mass as of Feb 2023
-            i_sfr =logsfr_ratios_to_sfrs(i_log_totmass,
-            self.params.get('logsfr_ratios',0), self.params.get('agebins',0))
-            # -- Question: sfrs[0] is the most recent bin?
+            # Calculate the star formation rate
+            i_sfr = logsfr_ratios_to_sfrs(i_log_totmass,
+                                        self.params.get('logsfr_ratios', 0),
+                                        self.params.get('agebins', 0))
             i_log_SFR = math.log10(i_sfr[0])
-            #print('most recent logSFR = %.1f'%i_log_SFR)
-            # ---- update on Feb 24, 2023 --- # I should divide by total mass formed ---- #
+
             # ---- following `get_galaxy_elines(self)`
+            # Use total mass for the calculation of lsuntimesmass - CHECKTHIS
             #lsuntimesmass = 3.846e33*(10**(i_log_stellarmass))
             lsuntimesmass = 3.846e33*(10**(i_log_totmass))
-            # -- Halpha to Hzeta-- #
-            lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_dust2_index, i_dust1, i_dust2)/lsuntimesmass
+
+            # Update the luminosities for Balmer series lines (H-alpha to H-zeta)
+            lum_Hemis = 10**predict_L_Hemis(i_log_SFR, i_dust2_index, i_dust1, i_dust2) / lsuntimesmass
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
                 self._eline_lum[iw_index] = lum_Hemis[iw_]
-            # -- OII -- #
+    
+            # Update the luminosities for other emission lines: OII, OIII, NeIII, NII, SII
+            # The predict_* functions return the logarithm of the line luminosities
+            # which are then converted to linear units and normalized by lsuntimesmass
+    
+            # Update OII lines
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2)
-            iw_index = find_nearest(self._eline_wave,3729)
-            # -- Question: should I divide by totmass or stellar mass?
-            self._eline_lum[iw_index] = 10**logOII3729/lsuntimesmass
-            #print(3729, self.emline_info[iw_index])
-            iw_index = find_nearest(self._eline_wave,3726)
-            self._eline_lum[iw_index] = 10**logOII3726/lsuntimesmass
-            #print(3726, self.emline_info[iw_index])
-            # -- OIII -- #
-            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
+            self._eline_lum[find_nearest(self._eline_wave, 3729)] = 10**logOII3729 / lsuntimesmass
+            self._eline_lum[find_nearest(self._eline_wave, 3726)] = 10**logOII3726 / lsuntimesmass
+
+            # Update OIII lines
+            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_dust2_index, 
+                                                          i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,5007)
             self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass
             #print(5007, self.emline_info[iw_index])
             iw_index = find_nearest(self._eline_wave,4960)
             self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass
             #print(4960, self.emline_info[iw_index])
-            # -- NeIII -- #
+            
+            # Update NeIII line
             logline = predict_L_NeIII3870(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,3968)
             self._eline_lum[iw_index] = 10**logline/lsuntimesmass
             #print(3968, self.emline_info[iw_index])
+
             # -- NII -- #
             logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,6585)
             self._eline_lum[iw_index] = 10**logNII6583/lsuntimesmass
-            #print(6585, self.emline_info[iw_index])
+
             iw_index = find_nearest(self._eline_wave,6549)
             self._eline_lum[iw_index] = 10**logNII6548/lsuntimesmass
-            #print(6549, self.emline_info[iw_index])
+
+
             # -- SII -- #
             _, logSII6716, logSII6731 = predict_L_SII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass )
             iw_index = find_nearest(self._eline_wave,6717)
             self._eline_lum[iw_index] = 10**logSII6716/lsuntimesmass
-            #print(6717, self.emline_info[iw_index])
+
             iw_index = find_nearest(self._eline_wave,6732)
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
-            #print(6732, self.emline_info[iw_index])
 
-        #print('self._eline_lum:',self._eline_lum)
-        # -------- #
+
         # Flux normalize
         self._norm_spec = self._spec * self.flux_norm()
 
@@ -417,6 +427,7 @@ class SpecModel(ProspectorParams):
         # observed wavelengths
         eline_z = self.params.get("eline_delta_zred", 0.0)
         self._ewave_obs = (1 + eline_z + self._zred) * self._eline_wave
+        self._eline_lum_var = np.zeros_like(self._eline_wave) # ?
 
         # masks for lines to be treated in various ways.
         # always run this becuase it's need for spec *and* phot if adding lines
@@ -561,6 +572,7 @@ class SpecModel(ProspectorParams):
         else:
             # simply use the ML values and associated marginaliztion penalty
             alpha_bar = alpha_hat
+            sigma_alpha_bar = sigma_alpha_hat #?
             K = ln_mvn(alpha_hat, mean=alpha_hat, cov=sigma_alpha_hat)
 
         # Cache the ln-penalty
@@ -568,6 +580,7 @@ class SpecModel(ProspectorParams):
 
         # Store fitted emission line luminosities in physical units
         self._eline_lum[idx] = alpha_bar / linecal
+        self._eline_lum_var[idx] = np.diag(sigma_alpha_bar) / linecal**2
 
         # return the maximum-likelihood line spectrum in observed units
         return alpha_hat * eline_gaussians

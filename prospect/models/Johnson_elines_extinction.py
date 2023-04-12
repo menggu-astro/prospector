@@ -87,16 +87,39 @@ def predict_L_Hemis(logSFR, n, dust1, dust2):
     Reproduces Valentino 2017 catalog a bias of 0.005 dex
     and standard deviation of 0.007 dex.
     return: log of the Halpha luminosity in erg/s
-    """
-    out = {}
-    out['wave'] = np.array([6564.61, 4862.68, 4341.68, 4102.89, 3971.19, 3890.17])
 
-    # """
-    # f = 0.76 # stellar to nebular Av ratio.
-    # Av_nebular = Av_stellar/f
-    # ext_mags = extinction.calzetti00(out['wave'], Av_nebular, 4.05)
-    # """
-    ext_arr = np.array([charlot_and_fall_extinction(np.array([i_]), dust1, dust2, n) for i_ in out['wave']])
+    - older version:
+        - f = 0.76 # stellar to nebular Av ratio.
+        - Av_nebular = Av_stellar/f
+        - ext_mags = extinction.calzetti00(out['wave'], Av_nebular, 4.05)
+    """
+    wavelengths = np.array([6564.61, 4862.68, 4341.68, 
+                            4102.89, 3971.19, 3890.17])
+    #caseB_ratios = np.array([1.0, 2.86, 6.13, 8.91, 11.51, 14.23])  # Case B recombination coefficients
+    caseB_ratios = np.array([1.0, 2.86, 2.86/0.466, 
+                             2.86/0.256, 2.86/0.158, 2.86/0.105])
+    # Calculate the extinction for each wavelength
+    ext_arr = np.array([charlot_and_fall_extinction(i_, dust1, dust2, n) for i_ in wavelengths]).flatten()
+
+
+    # Calculate the intrinsic line luminosities
+    logL_int = logSFR - np.log10(7.9e-42) - np.log10(caseB_ratios)
+
+    # Apply extinction to the intrinsic line luminosities
+    logL_ext = logL_int + np.log10(ext_arr)
+
+    return logL_ext
+
+# ---------------------------------------------------------------- #
+"""
+def predict_L_Hemis_old(logSFR, n, dust1, dust2):
+
+    wavelengths = np.array([6564.61, 4862.68, 4341.68, 
+                            4102.89, 3971.19, 3890.17])
+    
+    out = {'wave': wavelengths}
+    # Calculate the extinction for each wavelength
+    ext_arr = np.array([charlot_and_fall_extinction(i_, dust1, dust2, n) for i_ in wavelengths]).flatten()
 
     # -- Halpha -- #
     logL_Ha_int = logSFR - math.log10(7.9e-42) # K98
@@ -128,6 +151,7 @@ def predict_L_Hemis(logSFR, n, dust1, dust2):
 
     out['logL'] = np.array([logL_Ha, logL_Hb, logL_Hg, logL_Hd, logL_He, logL_Hz])
     return out['logL']
+"""
 
 
 # ---------------------------------------------------------------- #
