@@ -284,7 +284,7 @@ def write_h5_header(hf, run_params, model):
                  'paramfile_text': paramfile_string(**run_params)}
     for k, v in list(serialize.items()):
         try:
-            hf.attrs[k] = json.dumps(v, cls=NumpyEncoder)
+            hf.attrs[k] = json.dumps(v)#, cls=NumpyEncoder)
         except(TypeError):
             # Should this fall back to pickle.dumps?
             hf.attrs[k] = pick(v)

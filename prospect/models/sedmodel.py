@@ -135,18 +135,18 @@ class SpecModel(ProspectorParams):
             for iw_, iwave in enumerate([6563, 4861, 4340, 4102, 3970, 3889]):
                 iw_index = find_nearest(self._eline_wave, iwave)
                 self._eline_lum[iw_index] = lum_Hemis[iw_]
-    
+
             # Update the luminosities for other emission lines: OII, OIII, NeIII, NII, SII
             # The predict_* functions return the logarithm of the line luminosities
             # which are then converted to linear units and normalized by lsuntimesmass
-    
+
             # Update OII lines
             _, logOII3729, logOII3726 = predict_L_OII_tot(i_log_SFR, i_dust2_index, i_dust1, i_dust2)
             self._eline_lum[find_nearest(self._eline_wave, 3729)] = 10**logOII3729 / lsuntimesmass
             self._eline_lum[find_nearest(self._eline_wave, 3726)] = 10**logOII3726 / lsuntimesmass
 
             # Update OIII lines
-            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_dust2_index, 
+            logOIII5007, logOIII4959 = predict_L_OIII5007(i_log_SFR, i_dust2_index,
                                                           i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,5007)
             self._eline_lum[iw_index] = 10**logOIII5007/lsuntimesmass
@@ -154,7 +154,7 @@ class SpecModel(ProspectorParams):
             iw_index = find_nearest(self._eline_wave,4960)
             self._eline_lum[iw_index] = 10**logOIII4959/lsuntimesmass
             #print(4960, self.emline_info[iw_index])
-            
+
             # Update NeIII line
             logline = predict_L_NeIII3870(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
             iw_index = find_nearest(self._eline_wave,3968)
@@ -601,7 +601,7 @@ class SpecModel(ProspectorParams):
             An (n_line, n_wave) ndarray, units of Lsun/Hz intrinsic (no
             calibration vector applied)
         """
-        #print('going to use get_eline_gaussians')
+
         gaussians = self.get_eline_gaussians(lineidx=line_indices, wave=wave)
         elums = self._eline_lum[line_indices] * self.flux_norm() / (1 + self._zred)
         return elums * gaussians
@@ -632,7 +632,6 @@ class SpecModel(ProspectorParams):
         # generate gaussians
         mu = np.atleast_2d(self._ewave_obs[lineidx])
         sigma = np.atleast_2d(self._eline_sigma_kms[lineidx])
-        #print('emis sigma=',sigma)
         dv = ckms * (warr[:, None]/mu - 1)
         dv_dnu = ckms * warr[:, None]**2 / (lightspeed * mu)
 
@@ -650,7 +649,6 @@ class SpecModel(ProspectorParams):
         for details.
         """
         sigma = self.params.get("sigma_smooth", 100)
-        #print('smooth spec, sigma=',sigma)
         outspec = smoothspec(wave, spec, sigma, outwave=self._outwave, **self.params)
 
         return outspec
