@@ -157,9 +157,9 @@ class SpecModel(ProspectorParams):
 
             # Update NeIII line
             logline = predict_L_NeIII3870(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
-            iw_index = find_nearest(self._eline_wave,3968)
+            iw_index = find_nearest(self._eline_wave,3869.85)
             self._eline_lum[iw_index] = 10**logline/lsuntimesmass
-            #print(3968, self.emline_info[iw_index])
+            #print(3869, self.emline_info[iw_index])
 
             # -- NII -- #
             logNII6583, logNII6548 = predict_L_NII6585(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
@@ -177,6 +177,17 @@ class SpecModel(ProspectorParams):
 
             iw_index = find_nearest(self._eline_wave,6732)
             self._eline_lum[iw_index] = 10**logSII6731/lsuntimesmass
+            
+            # -- Last, update two weak emission lines using Erin's code -- #
+            logOIII4363 = predict_L_OIII_4363(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
+            iw_index = find_nearest(self._eline_wave,4363)
+            self._eline_lum[iw_index] = 10**logOIII4363/lsuntimesmass
+            #print(4363, self.emline_info[iw_index])  
+            
+            logNeIII3969 = predict_L_NeIII3969(i_log_SFR, i_dust2_index, i_dust1, i_dust2,i_log_stellarmass)
+            iw_index = find_nearest(self._eline_wave,3969)
+            self._eline_lum[iw_index] = 10**logNeIII3969/lsuntimesmass 
+            #print(3969, self.emline_info[iw_index])           
 
 
         # Flux normalize

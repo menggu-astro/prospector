@@ -15,6 +15,9 @@
 # (http://adsabs.harvard.edu/abs/2017MNRAS.472.4878V) predictions,
 # probably because of use of slightly different extinction laws.
 
+# 2023-11: add two weak lines from Erin
+# https://github.com/ekadofong/pfsge_weaklines/blob/main/pfsge_weaklines/weaklines.py
+
 
 import numpy as np
 import extinction
@@ -23,7 +26,8 @@ import math, random
 __all__ = ['predict_L_Hemis',
            'predict_L_OII_tot', 'predict_L_OIII5007',
            'predict_L_NeIII3870', 'predict_L_NII6585',
-           'predict_L_SII_tot', 'find_nearest']
+           'predict_L_SII_tot', 'find_nearest', 
+       'predict_L_OIII_4363', 'predict_L_NeIII3969']
 
 # ---------------------------------------------------------------- #
 def charlot_and_fall_extinction(lam, dust1, dust2, dust2_index,
@@ -406,3 +410,82 @@ def predict_L_Hz(logSFR, n, dust1, dust2):
 
     return logL_Hz
 
+
+# ---------------------------------------------------------------- #
+# 2023-11: add two weak lines from Erin
+# https://github.com/ekadofong/pfsge_weaklines/blob/main/pfsge_weaklines/weaklines.py
+import pyneb as pn
+
+def predict_L_OIII_4363(logSFR, n, dust1, dust2, logMstar, include_extinction=True):
+    """
+    Predicts the logarithm of the [OIII]λ4363 line luminosity based off of the line ratio between
+    [OIII]4363/[OIII]5007, which is a temperature-sensitive ratio.
+
+    Parameters:
+        logSFR (float): Logarithm of the star formation rate
+        n (float): power-law index of Dust parameter 2
+        dust1 (float): Dust parameter 1
+        dust2 (float): Dust parameter 2
+        logMstar (float): Logarithm of the stellar mass
+        TOIII (float): Electron temperature probed by O++ in K
+        ne (float, optional): Electron density in cm^-3. Defaults to 100.
+        include_extinction (bool, optional): Flag indicating whether to include extinction. Defaults to False.
+
+    Returns:
+        float: Logarithm of the [OIII]λ4363 line luminosity.
+    """    
+    log_LOIII5007_int = predict_L_OIII5007(logSFR, n, dust1, dust2, logMstar)[0]
+    
+    ne=100.
+    TOIII = np.random.uniform(1e4, 2e4, size=1).item()
+    opp = pn.Atom ( 'O', 3 )
+    j_OIII5007 = opp.getEmissivity ( TOIII, ne, *opp.getTransition(5007.) )
+    j_OIII4363 = opp.getEmissivity ( TOIII, ne, *opp.getTransition(4363.) )
+    
+    log_LOIII4363_int = log_LOIII5007_int + np.log10(j_OIII4363 / j_OIII5007)
+    
+    ext = charlot_and_fall_extinction(np.array([4363.]), dust1, dust2, n) 
+    if include_extinction:
+        extinction_factor = math.log10(ext)
+    else:
+        extinction_factor = 0.           
+        
+    log_LOIII4363  = log_LOIII4363_int + extinction_factor
+    return log_LOIII4363
+
+
+def predict_L_NeIII3969(logSFR, n, dust1, dust2, logMstar, include_extinction = True):
+    """
+    Predicts the logarithm of the [NeIII]3969 line luminosity from its fixed ratio with [NeIII]3870
+
+    Parameters:
+        logSFR (float): Logarithm of the star formation rate
+        n (float): power-law index of Dust parameter 2
+        dust1 (float): Dust parameter 1
+        dust2 (float): Dust parameter 2
+        logMstar (float): Logarithm of the stellar mass
+        include_extinction (bool, optional): Flag indicating whether to include extinction. Defaults to False.
+
+    Returns:
+        float: Logarithm of the [OIII]λ4363 line luminosity.
+    """     
+    log_LNeIII3870_int = predict_L_NeIII3870( logSFR, n, dust1, dust2, logMstar)
+    
+    #nepp = pn.Atom('Ne',3)
+    #te = 1e4 
+    #ne = 1e2 # \\ these shouldn't actually matter because the LR is fixed
+    #j_NeIII3870 = nepp.getEmissivity ( te, ne, *nepp.getTransition(3870.) )
+    #j_NeIII3969 = nepp.getEmissivity ( te, ne, *nepp.getTransition(3969.) )  
+    j_NeIII3870 = 1.13515859e-21  
+    j_NeIII3969 = 3.41928781e-22
+    
+    log_LNeIII3969_int = log_LNeIII3870_int + math.log10(j_NeIII3969/j_NeIII3870)
+    
+    ext = charlot_and_fall_extinction(np.array([3969.]), dust1, dust2, n) 
+    if include_extinction:
+        extinction_factor = math.log10(ext)
+    else:
+        extinction_factor = 0.           
+    
+    log_LNeIII3969 = log_LNeIII3969_int + extinction_factor
+    return log_LNeIII3969
