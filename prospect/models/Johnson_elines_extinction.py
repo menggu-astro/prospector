@@ -20,7 +20,7 @@
 
 
 import numpy as np
-import extinction
+#import extinction
 import math, random
 
 __all__ = ['predict_L_Hemis',
