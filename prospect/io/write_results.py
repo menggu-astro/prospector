@@ -65,7 +65,8 @@ def paramfile_string(param_file=None, **extras):
 
 def write_hdf5(hfile, run_params, model, obs, sampler=None,
                optimize_result_list=None, tsample=0.0, toptimize=0.0,
-               sampling_initial_center=[], sps=None, **extras):
+               sampling_initial_center=[], sps=None, write_model_params=True,
+               **extras):
     """Write output and information to an HDF5 file object (or
     group).
 
@@ -139,7 +140,7 @@ def write_hdf5(hfile, run_params, model, obs, sampler=None,
 
     # ----------------------
     # High level parameter and version info
-    write_h5_header(hf, run_params, model)
+    write_h5_header(hf, run_params, model, write_model_params=write_model_params)
     hf.attrs['optimizer_duration'] = json.dumps(toptimize)
     hf.flush()
 
@@ -275,13 +276,23 @@ def write_dynesty_h5(hf, dynesty_out, model, tsample):
     hf.flush()
 
 
-def write_h5_header(hf, run_params, model):
+def write_h5_header(hf, run_params, model, write_model_params=True):
     """Write header information about the run.
     """
     serialize = {'run_params': run_params,
                  'model_params': [functions_to_names(p.copy())
                                   for p in model.config_list],
                  'paramfile_text': paramfile_string(**run_params)}
+    try:
+        hf.attrs['model_params'] = pick(serialize['model_params'])
+    except:
+        serialize['model_params'] = None
+
+    if not write_model_params:
+        serialize = {'run_params': run_params,
+                     'model_params': None,
+                     'paramfile_text': paramfile_string(**run_params)}
+
     for k, v in list(serialize.items()):
         try:
             hf.attrs[k] = json.dumps(v)#, cls=NumpyEncoder)
@@ -328,8 +339,8 @@ def write_obs_to_h5(hf, obs):
 
 def optresultlist_to_ndarray(results):
     npar, nout = len(results[0].x), len(results[0].fun)
-    dt = [("success", np.bool), ("message", "S50"), ("nfev", np.int),
-          ("x", (np.float, npar)), ("fun", (np.float, nout))]
+    dt = [("success", bool), ("message", "U50"), ("nfev", int),
+          ("x", (float, npar)), ("fun", (float, nout))]
     out = np.zeros(len(results), dtype=np.dtype(dt))
     for i, r in enumerate(results):
         for f in out.dtype.names:

@@ -10,12 +10,13 @@ import numpy as np
 import os
 from . import priors
 from . import priors_beta
-from . import transforms
+from . import transforms, hyperparam_transforms
 
 __all__ = ["TemplateLibrary",
            "describe",
            "adjust_dirichlet_agebins",
            "adjust_continuity_agebins",
+           "adjust_stochastic_params"
            ]
 
 
@@ -124,6 +125,27 @@ def adjust_continuity_agebins(parset, tuniv=13.7, nbins=7):
     parset['mass']['N'] = ncomp
     parset['agebins']['N'] = ncomp
     parset['agebins']['init'] = agebins.T
+    parset["logsfr_ratios"]["N"] = ncomp - 1
+    parset["logsfr_ratios"]["init"] = mean
+    parset["logsfr_ratios"]["prior"] = rprior
+
+    return parset
+
+
+def adjust_stochastic_params(parset, tuniv=13.7):
+    
+    agebins = parset['agebins']['init']
+    
+    ncomp = len(parset['agebins']['init'])
+    mean = np.zeros(ncomp - 1)
+    psd_params = [parset['sigma_reg']['init'], parset['tau_eq']['init'], parset['tau_in']['init'],
+                  parset['sigma_dyn']['init'], parset['tau_dyn']['init']]
+    sfr_covar = hyperparam_transforms.get_sfr_covar(psd_params, agebins=agebins)
+    sfr_ratio_covar = hyperparam_transforms.sfr_covar_to_sfr_ratio_covar(sfr_covar)
+    rprior = priors.MultiVariateNormal(mean=mean, Sigma=sfr_ratio_covar)
+    
+    parset['mass']['N'] = ncomp
+    parset['agebins']['N'] = ncomp
     parset["logsfr_ratios"]["N"] = ncomp - 1
     parset["logsfr_ratios"]["init"] = mean
     parset["logsfr_ratios"]["prior"] = rprior
@@ -659,6 +681,62 @@ _dirichlet_["total_mass"] = mass
 TemplateLibrary["dirichlet_sfh"] = (_dirichlet_,
                                     "Non-parameteric SFH with Dirichlet prior (fractional SFR)")
 
+
+# ----------------------------
+# --- Stochastic SFH ----
+# ----------------------------
+# A non-parametric SFH model which correlates the SFRs between time bins based on Extended Regulator model in TFC2020
+
+_stochastic_ = TemplateLibrary["ssp"]
+_ = _stochastic_.pop("tage")
+
+_stochastic_["sfh"] = {"N": 1, "isfree": False, "init": 3, "units": "FSPS index"}
+# This is the *total*  mass formed, as a variable
+_stochastic_["logmass"] = {"N": 1, "isfree": True, "init": 10, 'units': 'Msun',
+                           'prior': priors.TopHat(mini=7, maxi=12)}
+# This will be the mass in each bin.  It depends on other free and fixed
+# parameters.  Its length needs to be modified based on the number of bins
+_stochastic_["mass"] = {'N': 8, 'isfree': False, 'init': 1e6, 'units': r'M$_\odot$',
+                        'depends_on': transforms.logsfr_ratios_to_masses}
+
+# This gives the start and stop of each age bin.  It can be adjusted and its
+# length must match the lenth of "mass"
+agebins = [[0.0, 6.0], [6.0, 6.5], [6.5, 7.0], [7.0, 7.5], [7.5, 8.0], [8.0, 8.5], [8.5, 9.0], [9.5, 10.0]]
+_stochastic_["agebins"] = {'N': 8, 'isfree': False, 'init': agebins, 'units': 'log(yr)'}
+
+# Sets the PSD parameters & priors
+# sigma_reg: Overall stochasticity coming from gas inflow
+_stochastic_["sigma_reg"] = {'name': 'sigma_reg', 'N': 1, 'isfree': True, 'init': 0.3, 
+                             'prior': priors.LogUniform(mini=0.01, maxi=5.0), 'units': 'dex^2'}
+# tau_eq: Timescale associated with equilibrium gas cycling in gas reservoir (related to depletion timescale)
+_stochastic_["tau_eq"] = {'name': 'tau_eq', 'N': 1, 'isfree': True, 'init': 2.5, 
+                          'prior': priors.TopHat(mini=0.01, maxi=7.0), 'units': 'Gyr'}
+# tau_in: Characteristic timescale associated with gas inflow into gas reservoir
+_stochastic_["tau_in"] = {'name': 'tau_in', 'N': 1, 'isfree': False, 'init': 7.0, 'units': 'Gyr'}
+# sigma_dyn: Overall stochasticity coming from short-term, dynamical processes (e.g., creation/destruction of GMCs)
+_stochastic_["sigma_dyn"] = {'name': 'sigma_dyn', 'N': 1, 'isfree': True, 'init': 0.01, 
+                             'prior': priors.LogUniform(mini=0.001, maxi=0.1), 'units': 'dex^2'}
+# tau_dyn: Characteristic timescale associated with short-term, dynamical processes
+_stochastic_["tau_dyn"] = {'name': 'tau_dyn', 'N': 1, 'isfree': True, 'init': 0.025, 
+                           'prior': priors.ClippedNormal(mini=0.005, maxi=0.2, mean=0.01, sigma=0.02), 'units': 'Gyr'}
+
+_stochastic_["logsfr_ratios"] = {'N': 7, 'isfree': True, 'init': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                                 'prior': None}
+
+_stochastic_ = adjust_stochastic_params(_stochastic_)
+# calculates covariance matrix from the initial PSD parameter values to be used in log SFR ratios prior
+# psd_params = [0.3, 2.5, 1.0, 0.01, 0.025]
+# sfr_covar = hyperparam_transforms.get_sfr_covar(psd_params, agebins=agebins)
+# sfr_ratio_covar = hyperparam_transforms.sfr_covar_to_sfr_ratio_covar(sfr_covar)
+
+# This controls the distribution of SFR(t) / SFR(t+dt). It has NBINS-1 components.
+# _stochastic_["logsfr_ratios"] = {'N': 7, 'isfree': True, 'init': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+#                                  'prior': priors.MultiVariateNormal(mean=[0.]*7, Sigma=sfr_ratio_covar)}
+
+TemplateLibrary["stochastic_sfh"] = (_stochastic_,
+                                     "Stochastic SFH which correlates the SFRs between time bins based on model in TFC2020")
+
+
 # ----------------------------
 # --- Prospector-alpha ---
 # ----------------------------
@@ -704,11 +782,13 @@ _beta_nzsfh_ = TemplateLibrary["alpha"]
 _beta_nzsfh_.pop('z_fraction', None)
 _beta_nzsfh_.pop('total_mass', None)
 
-_beta_nzsfh_['nzsfh'] = {'N': 9, 'isfree': True, 'init': np.array([0.5,8,0.0, 0,0,0,0,0,0]),
+nbins_sfh = 7 # number of sfh bins
+_beta_nzsfh_['nzsfh'] = {'N': nbins_sfh+2, 'isfree': True, 'init': np.concatenate([[0.5,8,0.0], np.zeros(nbins_sfh-1)]),
                          'prior': priors_beta.NzSFH(zred_mini=1e-3, zred_maxi=15.0,
                                                     mass_mini=7.0, mass_maxi=12.5,
                                                     z_mini=-1.98, z_maxi=0.19,
                                                     logsfr_ratio_mini=-5.0, logsfr_ratio_maxi=5.0,
+                                                    logsfr_ratio_tscale=0.3, nbins_sfh=nbins_sfh,
                                                     const_phi=True)}
 
 _beta_nzsfh_['zred'] = {'N': 1, 'isfree': False, 'init': 0.5,
@@ -721,16 +801,16 @@ _beta_nzsfh_['logzsol'] = {'N': 1, 'isfree': False, 'init': -0.5, 'units': r'$\l
                            'depends_on': transforms.nzsfh_to_logzsol}
 
 # --- SFH ---
-nbins_sfh = 7
 _beta_nzsfh_["sfh"] = {'N': 1, 'isfree': False, 'init': 3}
 
-_beta_nzsfh_['logsfr_ratios'] = {'N': 6, 'isfree': False, 'init': 0.0,
+_beta_nzsfh_['logsfr_ratios'] = {'N': nbins_sfh-1, 'isfree': False, 'init': 0.0,
                                  'depends_on': transforms.nzsfh_to_logsfr_ratios}
 
-_beta_nzsfh_["mass"] = {'N': 7, 'isfree': False, 'init': 1e6, 'units': r'M$_\odot$',
+_beta_nzsfh_["mass"] = {'N': nbins_sfh, 'isfree': False, 'init': 1e6, 'units': r'M$_\odot$',
                         'depends_on': transforms.logsfr_ratios_to_masses}
 
-_beta_nzsfh_['agebins'] = {'N': 7, 'isfree': False, 'init': transforms.zred_to_agebins_pbeta(np.atleast_1d(0.5)),
+_beta_nzsfh_['agebins'] = {'N': nbins_sfh, 'isfree': False,
+                           'init': transforms.zred_to_agebins_pbeta(np.atleast_1d(0.5), np.zeros(nbins_sfh)),
                            'depends_on': transforms.zred_to_agebins_pbeta}
 
 TemplateLibrary["beta"] = (_beta_nzsfh_,
